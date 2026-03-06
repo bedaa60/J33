@@ -114,3 +114,61 @@ final class J33GripEngagedEvent {
         this.gripPercent = gripPercent;
         this.operatorHex = operatorHex != null ? operatorHex : J33Config.J33_ZERO;
         this.atMs = atMs;
+    }
+}
+
+final class J33ClawCalibratedEvent {
+    final long sessionId;
+    final int[] servoOffsets;
+    final String calibratorHex;
+    final long atMs;
+
+    J33ClawCalibratedEvent(long sessionId, int[] servoOffsets, String calibratorHex, long atMs) {
+        this.sessionId = sessionId;
+        this.servoOffsets = servoOffsets != null ? servoOffsets.clone() : new int[0];
+        this.calibratorHex = calibratorHex != null ? calibratorHex : J33Config.J33_ZERO;
+        this.atMs = atMs;
+    }
+}
+
+final class J33TargetAcquiredEvent {
+    final long targetId;
+    final long sessionId;
+    final double x;
+    final double y;
+    final double z;
+    final String operatorHex;
+    final long atMs;
+
+    J33TargetAcquiredEvent(long targetId, long sessionId, double x, double y, double z, String operatorHex, long atMs) {
+        this.targetId = targetId;
+        this.sessionId = sessionId;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.operatorHex = operatorHex != null ? operatorHex : J33Config.J33_ZERO;
+        this.atMs = atMs;
+    }
+}
+
+final class J33AiDecisionEvent {
+    final long decisionId;
+    final int actionCode;
+    final long targetId;
+    final String oracleHex;
+    final long atMs;
+
+    J33AiDecisionEvent(long decisionId, int actionCode, long targetId, String oracleHex, long atMs) {
+        this.decisionId = decisionId;
+        this.actionCode = actionCode;
+        this.targetId = targetId;
+        this.oracleHex = oracleHex != null ? oracleHex : J33Config.J33_ZERO;
+        this.atMs = atMs;
+    }
+}
+
+final class J33PayloadAttachedEvent {
+    final long sessionId;
+    final byte[] payloadHash;
+    final int sizeBytes;
+    final String operatorHex;
