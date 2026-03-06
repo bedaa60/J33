@@ -926,3 +926,61 @@ public final class J33 {
 
     public static String getRoleAddress(String role) {
         if (role == null) return J33Config.J33_ZERO;
+        switch (role.toLowerCase()) {
+            case "operator": return J33Config.J33_CLAW_OPERATOR;
+            case "iron_anchor": return J33Config.J33_IRON_ANCHOR;
+            case "ai_oracle": return J33Config.J33_AI_ORACLE;
+            case "calibrator": return J33Config.J33_CALIBRATOR;
+            case "treasury": return J33Config.J33_TREASURY;
+            case "relay": return J33Config.J33_RELAY;
+            case "sentinel": return J33Config.J33_SENTINEL;
+            default: return J33Config.J33_ZERO;
+        }
+    }
+
+    public static final class J33EventTopics {
+        public static final String GRIP_ENGAGED_TOPIC = "0x" + Integer.toHexString(J33EventNames.GRIP_ENGAGED.hashCode());
+        public static final String CLAW_CALIBRATED_TOPIC = "0x" + Integer.toHexString(J33EventNames.CLAW_CALIBRATED.hashCode());
+        public static final String TARGET_ACQUIRED_TOPIC = "0x" + Integer.toHexString(J33EventNames.TARGET_ACQUIRED.hashCode());
+        public static final String AI_DECISION_TOPIC = "0x" + Integer.toHexString(J33EventNames.AI_DECISION.hashCode());
+        public static final String IRON_CLAW_ACTIVATED_TOPIC = "0x" + Integer.toHexString(J33EventNames.IRON_CLAW_ACTIVATED.hashCode());
+        public static final String SESSION_OPENED_TOPIC = "0x" + Integer.toHexString(J33EventNames.SESSION_OPENED.hashCode());
+        public static final String SESSION_CLOSED_TOPIC = "0x" + Integer.toHexString(J33EventNames.SESSION_CLOSED.hashCode());
+    }
+
+    public static int clampStrength(int tier) {
+        return Math.max(0, Math.min(J33Config.J33_MAX_CLAW_STRENGTH, tier));
+    }
+
+    public static int clampGrip(int percent) {
+        return Math.max(J33Config.J33_MIN_GRIP_PERCENT, Math.min(J33Config.J33_MAX_GRIP_PERCENT, percent));
+    }
+
+    public static int clampServoPosition(int pos) {
+        return Math.max(J33Config.J33_SERVO_MIN, Math.min(J33Config.J33_SERVO_MAX, pos));
+    }
+
+    public J33GripLevel recommendGripForStrength(int strengthTier) {
+        if (strengthTier <= 2) return J33GripLevel.LIGHT;
+        if (strengthTier <= 5) return J33GripLevel.MEDIUM;
+        if (strengthTier <= 8) return J33GripLevel.FIRM;
+        return J33GripLevel.FULL;
+    }
+
+    public static final class J33Limits {
+        public static int maxClawStrength() { return J33Config.J33_MAX_CLAW_STRENGTH; }
+        public static int minGripPercent() { return J33Config.J33_MIN_GRIP_PERCENT; }
+        public static int maxGripPercent() { return J33Config.J33_MAX_GRIP_PERCENT; }
+        public static int servoAxes() { return J33Config.J33_SERVO_AXES; }
+        public static int maxTargetsPerSession() { return J33Config.J33_MAX_TARGETS_PER_SESSION; }
+        public static int maxPayloadBytes() { return J33Config.J33_MAX_PAYLOAD_BYTES; }
+        public static int calibrationSamples() { return J33Config.J33_CALIBRATION_SAMPLES; }
+        public static int aiDecisionPoolSize() { return J33Config.J33_AI_DECISION_POOL; }
+        public static long epochMs() { return J33Config.J33_EPOCH_MS; }
+    }
+
+    public static final class J33Defaults {
+        public static final int STRENGTH = J33Config.J33_DEFAULT_STRENGTH;
+        public static final int GRIP = J33Config.J33_DEFAULT_GRIP;
+        public static final int[] SERVO_ZERO = new int[]{0, 0, 0, 0};
+    }
