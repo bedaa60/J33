@@ -172,3 +172,61 @@ final class J33PayloadAttachedEvent {
     final byte[] payloadHash;
     final int sizeBytes;
     final String operatorHex;
+    final long atMs;
+
+    J33PayloadAttachedEvent(long sessionId, byte[] payloadHash, int sizeBytes, String operatorHex, long atMs) {
+        this.sessionId = sessionId;
+        this.payloadHash = payloadHash != null ? payloadHash.clone() : new byte[0];
+        this.sizeBytes = sizeBytes;
+        this.operatorHex = operatorHex != null ? operatorHex : J33Config.J33_ZERO;
+        this.atMs = atMs;
+    }
+}
+
+final class J33IronClawActivatedEvent {
+    final long sessionId;
+    final int strengthTier;
+    final String anchorHex;
+    final long atMs;
+
+    J33IronClawActivatedEvent(long sessionId, int strengthTier, String anchorHex, long atMs) {
+        this.sessionId = sessionId;
+        this.strengthTier = strengthTier;
+        this.anchorHex = anchorHex != null ? anchorHex : J33Config.J33_ZERO;
+        this.atMs = atMs;
+    }
+}
+
+final class J33SessionOpenedEvent {
+    final long sessionId;
+    final String operatorHex;
+    final long atMs;
+
+    J33SessionOpenedEvent(long sessionId, String operatorHex, long atMs) {
+        this.sessionId = sessionId;
+        this.operatorHex = operatorHex != null ? operatorHex : J33Config.J33_ZERO;
+        this.atMs = atMs;
+    }
+}
+
+final class J33SessionClosedEvent {
+    final long sessionId;
+    final long atMs;
+
+    J33SessionClosedEvent(long sessionId, long atMs) {
+        this.sessionId = sessionId;
+        this.atMs = atMs;
+    }
+}
+
+final class J33PauseToggledEvent {
+    final boolean paused;
+    final String byHex;
+    final long atMs;
+
+    J33PauseToggledEvent(boolean paused, String byHex, long atMs) {
+        this.paused = paused;
+        this.byHex = byHex != null ? byHex : J33Config.J33_ZERO;
+        this.atMs = atMs;
+    }
+}
