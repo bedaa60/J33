@@ -1158,3 +1158,61 @@ public final class J33 {
         sb.append(",\"maxTargetsPerSession\":").append(J33Config.J33_MAX_TARGETS_PER_SESSION);
         sb.append(",\"maxPayloadBytes\":").append(J33Config.J33_MAX_PAYLOAD_BYTES);
         sb.append(",\"aiDecisionPoolSize\":").append(J33Config.J33_AI_DECISION_POOL);
+        sb.append("}");
+        return sb.toString();
+    }
+
+    public void runServoSequence(long sessionId, List<J33ServoCommand> commands, String caller) {
+        requireOperator(caller);
+        requireNotPaused();
+        if (!sessionStates.containsKey(sessionId)) throw new J33InvalidSessionException();
+        J33ClawState state = sessionStates.get(sessionId);
+        if (!state.isCalibrated()) throw new J33ClawNotCalibratedException();
+        if (commands == null) return;
+        int[] pos = state.getServoPositions().clone();
+        for (J33ServoCommand cmd : commands) {
+            int idx = cmd.getAxis().getIndex();
+            if (idx < 0 || idx >= J33Config.J33_SERVO_AXES) throw new J33ServoAxisOutOfRangeException();
+            int from = pos[idx];
+            pos[idx] = cmd.getPosition();
+            eventLog.add(new J33ServoMovedEvent(sessionId, idx, from, pos[idx], System.currentTimeMillis()));
+        }
+        J33ClawState next = new J33ClawState(sessionId, state.getMode(), state.getStrengthTier(), state.getGripPercent(), pos, true, System.currentTimeMillis());
+        sessionStates.put(sessionId, next);
+    }
+
+    public List<J33Target> getTargetsInRadius(long sessionId, double cx, double cy, double cz, double radius) {
+        List<J33Target> out = new ArrayList<>();
+        for (J33Target t : targets.values()) {
+            if (t.getSessionId() != sessionId) continue;
+            double dx = t.getX() - cx, dy = t.getY() - cy, dz = t.getZ() - cz;
+            if (dx * dx + dy * dy + dz * dz <= radius * radius) out.add(t);
+        }
+        return out;
+    }
+
+    public int getStrengthTierForSession(long sessionId) {
+        J33ClawState s = sessionStates.get(sessionId);
+        return s != null ? s.getStrengthTier() : 0;
+    }
+
+    public J33GripLevel getGripLevelForSession(long sessionId) {
+        J33ClawState s = sessionStates.get(sessionId);
+        return s != null ? J33GripLevel.fromPercent(s.getGripPercent()) : J33GripLevel.NONE;
+    }
+
+    public static final class J33RelayAdapter {
+        private final String relayHex;
+
+        public J33RelayAdapter(String relayHex) {
+            this.relayHex = relayHex != null ? relayHex : J33Config.J33_RELAY;
+        }
+
+        public String getRelayHex() { return relayHex; }
+
+        public boolean forward(byte[] payloadHash) {
+            return payloadHash != null && payloadHash.length == 32;
+        }
+    }
+
+    public static final class J33TreasuryAdapter {
