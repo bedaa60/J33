@@ -1216,3 +1216,61 @@ public final class J33 {
     }
 
     public static final class J33TreasuryAdapter {
+        private final String treasuryHex;
+        private final Map<String, BigInteger> balances = new ConcurrentHashMap<>();
+
+        public J33TreasuryAdapter(String treasuryHex) {
+            this.treasuryHex = treasuryHex != null ? treasuryHex : J33Config.J33_TREASURY;
+        }
+
+        public String getTreasuryHex() { return treasuryHex; }
+
+        public void credit(String toHex, BigInteger amountWei) {
+            if (toHex == null || amountWei == null || amountWei.signum() <= 0) return;
+            balances.merge(toHex, amountWei, BigInteger::add);
+        }
+
+        public BigInteger balanceOf(String hex) {
+            return balances.getOrDefault(hex != null ? hex : J33Config.J33_ZERO, BigInteger.ZERO);
+        }
+    }
+
+    public static final class J33Validation {
+        public static boolean isValidStrength(int tier) {
+            return tier >= 0 && tier <= J33Config.J33_MAX_CLAW_STRENGTH;
+        }
+        public static boolean isValidGripPercent(int p) {
+            return p >= J33Config.J33_MIN_GRIP_PERCENT && p <= J33Config.J33_MAX_GRIP_PERCENT;
+        }
+        public static boolean isValidPayloadSize(int bytes) {
+            return bytes >= 0 && bytes <= J33Config.J33_MAX_PAYLOAD_BYTES;
+        }
+        public static boolean isValidServoAxis(int index) {
+            return index >= 0 && index < J33Config.J33_SERVO_AXES;
+        }
+    }
+
+    public static final class J33WeiMath {
+        public static BigInteger addSafe(BigInteger a, BigInteger b) {
+            if (a == null) a = BigInteger.ZERO;
+            if (b == null) b = BigInteger.ZERO;
+            return a.add(b);
+        }
+        public static BigInteger subSafe(BigInteger a, BigInteger b) {
+            if (a == null) a = BigInteger.ZERO;
+            if (b == null) b = BigInteger.ZERO;
+            BigInteger r = a.subtract(b);
+            return r.signum() < 0 ? BigInteger.ZERO : r;
+        }
+    }
+
+    public List<J33GripEngagedEvent> getGripEngagedEvents() {
+        List<J33GripEngagedEvent> out = new ArrayList<>();
+        for (Object o : eventLog) {
+            if (o instanceof J33GripEngagedEvent) out.add((J33GripEngagedEvent) o);
+        }
+        return out;
+    }
+
+    public List<J33TargetAcquiredEvent> getTargetAcquiredEvents() {
+        List<J33TargetAcquiredEvent> out = new ArrayList<>();
