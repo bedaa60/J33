@@ -56,3 +56,61 @@ final class J33NotIronAnchorException extends RuntimeException {
 final class J33NotAiOracleException extends RuntimeException {
     J33NotAiOracleException() { super("J33: AI oracle only"); }
 }
+final class J33NotCalibratorException extends RuntimeException {
+    J33NotCalibratorException() { super("J33: calibrator only"); }
+}
+final class J33ClawNotCalibratedException extends RuntimeException {
+    J33ClawNotCalibratedException() { super("J33: claw not calibrated"); }
+}
+final class J33InvalidStrengthException extends RuntimeException {
+    J33InvalidStrengthException() { super("J33: invalid strength tier"); }
+}
+final class J33InvalidGripException extends RuntimeException {
+    J33InvalidGripException() { super("J33: invalid grip"); }
+}
+final class J33TargetNotFoundException extends RuntimeException {
+    J33TargetNotFoundException() { super("J33: target not found"); }
+}
+final class J33TargetCapReachedException extends RuntimeException {
+    J33TargetCapReachedException() { super("J33: target cap reached"); }
+}
+final class J33PayloadTooLargeException extends RuntimeException {
+    J33PayloadTooLargeException() { super("J33: payload too large"); }
+}
+final class J33ServoAxisOutOfRangeException extends RuntimeException {
+    J33ServoAxisOutOfRangeException() { super("J33: servo axis out of range"); }
+}
+final class J33PausedException extends RuntimeException {
+    J33PausedException() { super("J33: paused"); }
+}
+final class J33ZeroAddressException extends RuntimeException {
+    J33ZeroAddressException() { super("J33: zero address"); }
+}
+final class J33ReentrantException extends RuntimeException {
+    J33ReentrantException() { super("J33: reentrant"); }
+}
+final class J33InvalidSessionException extends RuntimeException {
+    J33InvalidSessionException() { super("J33: invalid session"); }
+}
+final class J33AiDecisionPoolFullException extends RuntimeException {
+    J33AiDecisionPoolFullException() { super("J33: AI decision pool full"); }
+}
+final class J33CalibrationFailedException extends RuntimeException {
+    J33CalibrationFailedException() { super("J33: calibration failed"); }
+}
+
+// ─── J33 Event payloads ──────────────────────────────────────────────────────
+
+final class J33GripEngagedEvent {
+    final long sessionId;
+    final int strengthTier;
+    final int gripPercent;
+    final String operatorHex;
+    final long atMs;
+
+    J33GripEngagedEvent(long sessionId, int strengthTier, int gripPercent, String operatorHex, long atMs) {
+        this.sessionId = sessionId;
+        this.strengthTier = strengthTier;
+        this.gripPercent = gripPercent;
+        this.operatorHex = operatorHex != null ? operatorHex : J33Config.J33_ZERO;
+        this.atMs = atMs;
