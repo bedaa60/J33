@@ -578,3 +578,61 @@ public final class J33 {
         requireNotReentrant();
         try {
             if (!sessionStates.containsKey(sessionId)) throw new J33InvalidSessionException();
+            if (strengthTier < 0 || strengthTier > J33Config.J33_MAX_CLAW_STRENGTH) throw new J33InvalidStrengthException();
+            if (gripPercent < J33Config.J33_MIN_GRIP_PERCENT || gripPercent > J33Config.J33_MAX_GRIP_PERCENT) throw new J33InvalidGripException();
+            J33ClawState state = sessionStates.get(sessionId);
+            J33ClawState next = new J33ClawState(sessionId, J33ClawMode.GRIPPING, strengthTier, gripPercent, state.getServoPositions(), state.isCalibrated(), System.currentTimeMillis());
+            sessionStates.put(sessionId, next);
+            eventLog.add(new J33GripEngagedEvent(sessionId, strengthTier, gripPercent, caller, System.currentTimeMillis()));
+        } finally { releaseGuard(); }
+    }
+
+    public void activateIronClaw(long sessionId, int strengthTier, String caller) {
+        requireIronAnchor(caller);
+        requireNotPaused();
+        requireNotReentrant();
+        try {
+            if (!sessionStates.containsKey(sessionId)) throw new J33InvalidSessionException();
+            if (strengthTier < 0 || strengthTier > J33Config.J33_MAX_CLAW_STRENGTH) throw new J33InvalidStrengthException();
+            J33ClawState state = sessionStates.get(sessionId);
+            if (!state.isCalibrated()) throw new J33ClawNotCalibratedException();
+            J33ClawState next = new J33ClawState(sessionId, J33ClawMode.IRON_LOCK, strengthTier, state.getGripPercent(), state.getServoPositions(), true, System.currentTimeMillis());
+            sessionStates.put(sessionId, next);
+            eventLog.add(new J33IronClawActivatedEvent(sessionId, strengthTier, caller, System.currentTimeMillis()));
+        } finally { releaseGuard(); }
+    }
+
+    public void attachPayload(long sessionId, byte[] data, String caller) {
+        requireOperator(caller);
+        requireNotPaused();
+        requireNotReentrant();
+        try {
+            if (!sessionStates.containsKey(sessionId)) throw new J33InvalidSessionException();
+            if (data != null && data.length > J33Config.J33_MAX_PAYLOAD_BYTES) throw new J33PayloadTooLargeException();
+            byte[] payload = data != null ? data : new byte[0];
+            byte[] hash = sha256(payload);
+            J33Payload p = new J33Payload(sessionId, payload, hash, System.currentTimeMillis());
+            payloadsBySession.put(sessionId, p);
+            eventLog.add(new J33PayloadAttachedEvent(sessionId, hash, payload.length, caller, System.currentTimeMillis()));
+        } finally { releaseGuard(); }
+    }
+
+    public void pushAiDecision(int actionCode, long targetId, String caller) {
+        requireAiOracle(caller);
+        requireNotPaused();
+        requireNotReentrant();
+        try {
+            if (aiDecisionPool.size() >= J33Config.J33_AI_DECISION_POOL) throw new J33AiDecisionPoolFullException();
+            long did = decisionIdGen.getAndIncrement();
+            J33AiDecisionEvent ev = new J33AiDecisionEvent(did, actionCode, targetId, caller, System.currentTimeMillis());
+            synchronized (aiDecisionPool) { aiDecisionPool.add(ev); }
+            eventLog.add(ev);
+        } finally { releaseGuard(); }
+    }
+
+    public void setPaused(boolean paused, String caller) {
+        requireOperator(caller);
+        requireNotReentrant();
+        try {
+            this.paused = paused;
+            eventLog.add(new J33PauseToggledEvent(paused, caller, System.currentTimeMillis()));
