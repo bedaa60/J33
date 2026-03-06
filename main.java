@@ -984,3 +984,61 @@ public final class J33 {
         public static final int GRIP = J33Config.J33_DEFAULT_GRIP;
         public static final int[] SERVO_ZERO = new int[]{0, 0, 0, 0};
     }
+
+    public static final class J33Runbook {
+        public static final String STEP_1 = "Open session via openSession(operator)";
+        public static final String STEP_2 = "Calibrate claw via calibrate(sessionId, offsets[4], calibrator)";
+        public static final String STEP_3 = "Acquire target(s) via acquireTarget(sessionId, x, y, z, operator)";
+        public static final String STEP_4 = "Engage grip via engageGrip(sessionId, strengthTier, gripPercent, operator)";
+        public static final String STEP_5 = "Optionally activate iron claw via activateIronClaw(sessionId, strengthTier, ironAnchor)";
+        public static final String STEP_6 = "Release via releaseGrip(sessionId, operator)";
+        public static final String STEP_7 = "Close session via closeSession(sessionId, operator)";
+        public static final String[] STEPS = new String[]{ STEP_1, STEP_2, STEP_3, STEP_4, STEP_5, STEP_6, STEP_7 };
+        public static List<String> getSteps() { return Arrays.asList(STEPS); }
+    }
+
+    public static final class J33Doc {
+        public static final String DESC_GRIP_ENGAGED = "Emitted when operator engages grip at a given strength and percent";
+        public static final String DESC_CLAW_CALIBRATED = "Emitted when calibrator completes calibration for a session";
+        public static final String DESC_TARGET_ACQUIRED = "Emitted when a target (x,y,z) is registered for a session";
+        public static final String DESC_AI_DECISION = "Emitted when AI oracle pushes a decision (action code, target id)";
+        public static final String DESC_IRON_CLAW_ACTIVATED = "Emitted when iron anchor activates iron-claw lock at strength tier";
+        public static final String DESC_SESSION_OPENED = "Emitted when a new session is opened by operator";
+        public static final String DESC_SESSION_CLOSED = "Emitted when session is closed by operator";
+        public static final String DESC_PAUSE_TOGGLED = "Emitted when operator toggles global pause";
+        public static final String ERR_NOT_OPERATOR = "Caller is not the claw operator";
+        public static final String ERR_NOT_IRON_ANCHOR = "Caller is not the iron anchor";
+        public static final String ERR_NOT_AI_ORACLE = "Caller is not the AI oracle";
+        public static final String ERR_CLAW_NOT_CALIBRATED = "Claw must be calibrated before this action";
+        public static final String ERR_PAUSED = "Engine is paused";
+        public static final String ERR_REENTRANT = "Reentrant call detected";
+    }
+
+    public static final class J33Selectors {
+        public static long openSessionSelector() { return keccak256Selector(J33ContractAbi.OPEN_SESSION); }
+        public static long closeSessionSelector() { return keccak256Selector(J33ContractAbi.CLOSE_SESSION); }
+        public static long calibrateSelector() { return keccak256Selector(J33ContractAbi.CALIBRATE); }
+        public static long acquireTargetSelector() { return keccak256Selector(J33ContractAbi.ACQUIRE_TARGET); }
+        public static long engageGripSelector() { return keccak256Selector(J33ContractAbi.ENGAGE_GRIP); }
+        public static long activateIronClawSelector() { return keccak256Selector(J33ContractAbi.ACTIVATE_IRON_CLAW); }
+        public static long attachPayloadSelector() { return keccak256Selector(J33ContractAbi.ATTACH_PAYLOAD); }
+        public static long pushAiDecisionSelector() { return keccak256Selector(J33ContractAbi.PUSH_AI_DECISION); }
+        public static long setPausedSelector() { return keccak256Selector(J33ContractAbi.SET_PAUSED); }
+        public static long releaseGripSelector() { return keccak256Selector(J33ContractAbi.RELEASE_GRIP); }
+    }
+
+    public long getNextSessionId() { return sessionIdGen.get(); }
+    public long getNextTargetId() { return targetIdGen.get(); }
+    public long getNextDecisionId() { return decisionIdGen.get(); }
+
+    public List<J33CalibrationRecord> getAllCalibrations() {
+        return new ArrayList<>(calibrations.values());
+    }
+
+    public List<J33Target> getAllTargets() {
+        return new ArrayList<>(targets.values());
+    }
+
+    public static int servoIndex(J33ServoAxis axis) {
+        return axis != null ? axis.getIndex() : 0;
+    }
