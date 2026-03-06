@@ -462,3 +462,61 @@ public final class J33 {
     private final Map<Long, J33Payload> payloadsBySession = new ConcurrentHashMap<>();
     private final Map<Long, J33CalibrationRecord> calibrations = new ConcurrentHashMap<>();
     private final List<Object> eventLog = new CopyOnWriteArrayList<>();
+    private final Queue<J33AiDecisionEvent> aiDecisionPool = new LinkedList<>();
+    private final AtomicLong sessionIdGen = new AtomicLong(1);
+    private final AtomicLong targetIdGen = new AtomicLong(1);
+    private final AtomicLong decisionIdGen = new AtomicLong(1);
+    private volatile boolean paused;
+    private volatile int guard;
+
+    private final String operatorHex;
+    private final String ironAnchorHex;
+    private final String aiOracleHex;
+    private final String calibratorHex;
+
+    public J33() {
+        this.operatorHex = J33Config.J33_CLAW_OPERATOR;
+        this.ironAnchorHex = J33Config.J33_IRON_ANCHOR;
+        this.aiOracleHex = J33Config.J33_AI_ORACLE;
+        this.calibratorHex = J33Config.J33_CALIBRATOR;
+    }
+
+    public J33(String operatorHex, String ironAnchorHex, String aiOracleHex, String calibratorHex) {
+        this.operatorHex = operatorHex != null ? operatorHex : J33Config.J33_CLAW_OPERATOR;
+        this.ironAnchorHex = ironAnchorHex != null ? ironAnchorHex : J33Config.J33_IRON_ANCHOR;
+        this.aiOracleHex = aiOracleHex != null ? aiOracleHex : J33Config.J33_AI_ORACLE;
+        this.calibratorHex = calibratorHex != null ? calibratorHex : J33Config.J33_CALIBRATOR;
+    }
+
+    public String getOperatorHex() { return operatorHex; }
+    public String getIronAnchorHex() { return ironAnchorHex; }
+    public String getAiOracleHex() { return aiOracleHex; }
+    public String getCalibratorHex() { return calibratorHex; }
+    public boolean isPaused() { return paused; }
+
+    private void requireOperator(String caller) {
+        if (caller == null || !caller.equalsIgnoreCase(operatorHex)) throw new J33NotOperatorException();
+    }
+    private void requireIronAnchor(String caller) {
+        if (caller == null || !caller.equalsIgnoreCase(ironAnchorHex)) throw new J33NotIronAnchorException();
+    }
+    private void requireAiOracle(String caller) {
+        if (caller == null || !caller.equalsIgnoreCase(aiOracleHex)) throw new J33NotAiOracleException();
+    }
+    private void requireCalibrator(String caller) {
+        if (caller == null || !caller.equalsIgnoreCase(calibratorHex)) throw new J33NotCalibratorException();
+    }
+    private void requireNotPaused() {
+        if (paused) throw new J33PausedException();
+    }
+    private void requireNotReentrant() {
+        if (guard != 0) throw new J33ReentrantException();
+        guard = 1;
+    }
+    private void releaseGuard() { guard = 0; }
+
+    public long openSession(String caller) {
+        requireOperator(caller);
+        requireNotPaused();
+        requireNotReentrant();
+        try {
