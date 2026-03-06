@@ -1390,3 +1390,61 @@ public final class J33 {
                 return 0;
             }
             if ("--config".equals(cmd)) {
+                System.out.println(engine.getConfigJson());
+                return 0;
+            }
+            if ("--demo".equals(cmd)) {
+                runDemo();
+                return 0;
+            }
+            if ("--open".equals(cmd)) {
+                long sid = engine.openSession(J33Config.J33_CLAW_OPERATOR);
+                System.out.println("session=" + sid);
+                return 0;
+            }
+            if ("--summary".equals(cmd)) {
+                for (J33.J33SessionSummary s : engine.getAllSessionSummaries()) {
+                    System.out.println("session=" + s.getSessionId() + " mode=" + (s.getState() != null ? s.getState().getMode() : "?") + " targets=" + (s.getTargets() != null ? s.getTargets().size() : 0));
+                }
+                return 0;
+            }
+            if ("--snapshot".equals(cmd)) {
+                J33.J33EngineSnapshot snap = engine.snapshot();
+                System.out.println("sessions=" + snap.getSessionStates().size() + " targets=" + snap.getTargets().size() + " events=" + snap.getEventLog().size() + " aiPool=" + snap.getAiPool().size());
+                return 0;
+            }
+            if ("--short".equals(cmd)) {
+                System.out.println(engine.toShortSummary());
+                return 0;
+            }
+            if ("--modes".equals(cmd)) {
+                Map<J33ClawMode, Integer> m = engine.getSessionCountByMode();
+                for (Map.Entry<J33ClawMode, Integer> e : m.entrySet()) {
+                    if (e.getValue() > 0) System.out.println(e.getKey() + "=" + e.getValue());
+                }
+                return 0;
+            }
+            if ("--version".equals(cmd)) {
+                System.out.println(J33BuildInfo.fullVersion() + " " + J33BuildInfo.BUILD_ID);
+                return 0;
+            }
+            printUsage();
+            return 1;
+        }
+
+        private void printUsage() {
+            System.out.println("J33 Claw Engine CLI v" + J33BuildInfo.fullVersion());
+            System.out.println("  --config       Print config JSON (operator, anchors, limits)");
+            System.out.println("  --demo         Run full demo: open, calibrate, target, grip, iron, release, close");
+            System.out.println("  --open         Open a new session; prints session id");
+            System.out.println("  --summary      List all session summaries (id, mode, target count)");
+            System.out.println("  --snapshot     Print engine snapshot stats (sessions, targets, events)");
+            System.out.println("  --help, -h      This help");
+            System.out.println("Addresses (EIP-55): operator, iron anchor, AI oracle, calibrator set in J33Config.");
+        }
+
+        private void runDemo() {
+            long sid = engine.openSession(J33Config.J33_CLAW_OPERATOR);
+            engine.calibrate(sid, new int[]{0, 0, 0, 0}, J33Config.J33_CALIBRATOR);
+            engine.acquireTarget(sid, 1.0, 2.0, 3.0, J33Config.J33_CLAW_OPERATOR);
+            engine.engageGrip(sid, 5, 75, J33Config.J33_CLAW_OPERATOR);
