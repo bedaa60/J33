@@ -636,3 +636,61 @@ public final class J33 {
         try {
             this.paused = paused;
             eventLog.add(new J33PauseToggledEvent(paused, caller, System.currentTimeMillis()));
+        } finally { releaseGuard(); }
+    }
+
+    public J33ClawState getClawState(long sessionId) {
+        return sessionStates.get(sessionId);
+    }
+
+    public J33Target getTarget(long targetId) {
+        return targets.get(targetId);
+    }
+
+    public J33Payload getPayload(long sessionId) {
+        return payloadsBySession.get(sessionId);
+    }
+
+    public J33CalibrationRecord getCalibration(long sessionId) {
+        return calibrations.get(sessionId);
+    }
+
+    public List<J33Target> getTargetsForSession(long sessionId) {
+        return targets.values().stream().filter(t -> t.getSessionId() == sessionId).collect(Collectors.toList());
+    }
+
+    public List<Object> getEventLog() {
+        return new ArrayList<>(eventLog);
+    }
+
+    public List<J33AiDecisionEvent> getAiDecisionPool() {
+        synchronized (aiDecisionPool) { return new ArrayList<>(aiDecisionPool); }
+    }
+
+    public void applyServoCommand(long sessionId, J33ServoCommand cmd, String caller) {
+        requireOperator(caller);
+        requireNotPaused();
+        if (!sessionStates.containsKey(sessionId)) throw new J33InvalidSessionException();
+        J33ClawState state = sessionStates.get(sessionId);
+        if (!state.isCalibrated()) throw new J33ClawNotCalibratedException();
+        int idx = cmd.getAxis().getIndex();
+        if (idx < 0 || idx >= J33Config.J33_SERVO_AXES) throw new J33ServoAxisOutOfRangeException();
+        int[] pos = state.getServoPositions();
+        pos[idx] = cmd.getPosition();
+        J33ClawState next = new J33ClawState(sessionId, state.getMode(), state.getStrengthTier(), state.getGripPercent(), pos, true, System.currentTimeMillis());
+        sessionStates.put(sessionId, next);
+    }
+
+    public void releaseGrip(long sessionId, String caller) {
+        requireOperator(caller);
+        requireNotReentrant();
+        try {
+            if (!sessionStates.containsKey(sessionId)) throw new J33InvalidSessionException();
+            J33ClawState state = sessionStates.get(sessionId);
+            J33ClawState next = new J33ClawState(sessionId, J33ClawMode.RELEASING, 0, 0, state.getServoPositions(), state.isCalibrated(), System.currentTimeMillis());
+            sessionStates.put(sessionId, next);
+        } finally { releaseGuard(); }
+    }
+
+    private static byte[] sha256(byte[] input) {
+        try {
