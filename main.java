@@ -346,3 +346,61 @@ enum J33AIAction {
 // ─── J33 State DTOs ─────────────────────────────────────────────────────────
 
 final class J33ClawState {
+    private final long sessionId;
+    private final J33ClawMode mode;
+    private final int strengthTier;
+    private final int gripPercent;
+    private final int[] servoPositions;
+    private final boolean calibrated;
+    private final long updatedAtMs;
+
+    J33ClawState(long sessionId, J33ClawMode mode, int strengthTier, int gripPercent, int[] servoPositions, boolean calibrated, long updatedAtMs) {
+        this.sessionId = sessionId;
+        this.mode = mode != null ? mode : J33ClawMode.IDLE;
+        this.strengthTier = Math.max(0, Math.min(J33Config.J33_MAX_CLAW_STRENGTH, strengthTier));
+        this.gripPercent = Math.max(J33Config.J33_MIN_GRIP_PERCENT, Math.min(J33Config.J33_MAX_GRIP_PERCENT, gripPercent));
+        this.servoPositions = servoPositions != null && servoPositions.length >= J33Config.J33_SERVO_AXES
+            ? Arrays.copyOf(servoPositions, J33Config.J33_SERVO_AXES)
+            : new int[J33Config.J33_SERVO_AXES];
+        this.calibrated = calibrated;
+        this.updatedAtMs = updatedAtMs;
+    }
+
+    public long getSessionId() { return sessionId; }
+    public J33ClawMode getMode() { return mode; }
+    public int getStrengthTier() { return strengthTier; }
+    public int getGripPercent() { return gripPercent; }
+    public int[] getServoPositions() { return servoPositions.clone(); }
+    public boolean isCalibrated() { return calibrated; }
+    public long getUpdatedAtMs() { return updatedAtMs; }
+}
+
+final class J33ServoCommand {
+    private final J33ServoAxis axis;
+    private final int position;
+    private final int speedPercent;
+
+    J33ServoCommand(J33ServoAxis axis, int position, int speedPercent) {
+        this.axis = axis != null ? axis : J33ServoAxis.X;
+        this.position = position;
+        this.speedPercent = Math.max(0, Math.min(100, speedPercent));
+    }
+
+    public J33ServoAxis getAxis() { return axis; }
+    public int getPosition() { return position; }
+    public int getSpeedPercent() { return speedPercent; }
+}
+
+final class J33Target {
+    private final long targetId;
+    private final long sessionId;
+    private final double x;
+    private final double y;
+    private final double z;
+    private final long createdAtMs;
+
+    J33Target(long targetId, long sessionId, double x, double y, double z, long createdAtMs) {
+        this.targetId = targetId;
+        this.sessionId = sessionId;
+        this.x = x;
+        this.y = y;
