@@ -752,3 +752,61 @@ public final class J33 {
     public J33AiDecisionEvent pollAiDecision() {
         synchronized (aiDecisionPool) {
             return aiDecisionPool.isEmpty() ? null : aiDecisionPool.poll();
+        }
+    }
+
+    public void clearAiDecisionPool(String caller) {
+        requireAiOracle(caller);
+        synchronized (aiDecisionPool) { aiDecisionPool.clear(); }
+    }
+
+    public static boolean isValidAddressHex(String hex) {
+        if (hex == null) return false;
+        String h = hex.startsWith("0x") ? hex.substring(2) : hex;
+        if (h.length() != 40) return false;
+        return h.matches("[0-9a-fA-F]+");
+    }
+
+    public static String normalizeAddress(String hex) {
+        if (hex == null || hex.trim().isEmpty()) return J33Config.J33_ZERO;
+        String h = hex.trim().startsWith("0x") ? hex.trim().substring(2) : hex.trim();
+        if (h.length() > 40) h = h.substring(0, 40);
+        return "0x" + h.toLowerCase();
+    }
+
+    public J33SessionSummary getSessionSummary(long sessionId) {
+        J33ClawState state = sessionStates.get(sessionId);
+        if (state == null) return null;
+        List<J33Target> sessionTargets = getTargetsForSession(sessionId);
+        J33Payload payload = payloadsBySession.get(sessionId);
+        J33CalibrationRecord cal = calibrations.get(sessionId);
+        return new J33SessionSummary(sessionId, state, sessionTargets, payload, cal);
+    }
+
+    public List<J33SessionSummary> getAllSessionSummaries() {
+        List<J33SessionSummary> out = new ArrayList<>();
+        for (Long sid : sessionStates.keySet()) {
+            J33SessionSummary s = getSessionSummary(sid);
+            if (s != null) out.add(s);
+        }
+        return out;
+    }
+
+    public static final class J33SessionSummary {
+        private final long sessionId;
+        private final J33ClawState state;
+        private final List<J33Target> targets;
+        private final J33Payload payload;
+        private final J33CalibrationRecord calibration;
+
+        J33SessionSummary(long sessionId, J33ClawState state, List<J33Target> targets, J33Payload payload, J33CalibrationRecord calibration) {
+            this.sessionId = sessionId;
+            this.state = state;
+            this.targets = targets != null ? new ArrayList<>(targets) : Collections.emptyList();
+            this.payload = payload;
+            this.calibration = calibration;
+        }
+
+        public long getSessionId() { return sessionId; }
+        public J33ClawState getState() { return state; }
+        public List<J33Target> getTargets() { return targets; }
