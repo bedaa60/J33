@@ -810,3 +810,61 @@ public final class J33 {
         public long getSessionId() { return sessionId; }
         public J33ClawState getState() { return state; }
         public List<J33Target> getTargets() { return targets; }
+        public J33Payload getPayload() { return payload; }
+        public J33CalibrationRecord getCalibration() { return calibration; }
+    }
+
+    public J33EngineSnapshot snapshot() {
+        Map<Long, J33ClawState> statesCopy = new HashMap<>(sessionStates);
+        Map<Long, J33Target> targetsCopy = new HashMap<>(targets);
+        Map<Long, J33Payload> payloadsCopy = new HashMap<>(payloadsBySession);
+        Map<Long, J33CalibrationRecord> calCopy = new HashMap<>(calibrations);
+        List<Object> logCopy = new ArrayList<>(eventLog);
+        List<J33AiDecisionEvent> poolCopy = getAiDecisionPool();
+        return new J33EngineSnapshot(statesCopy, targetsCopy, payloadsCopy, calCopy, logCopy, poolCopy, paused, sessionIdGen.get(), targetIdGen.get(), decisionIdGen.get());
+    }
+
+    public static final class J33EngineSnapshot {
+        private final Map<Long, J33ClawState> sessionStates;
+        private final Map<Long, J33Target> targets;
+        private final Map<Long, J33Payload> payloads;
+        private final Map<Long, J33CalibrationRecord> calibrations;
+        private final List<Object> eventLog;
+        private final List<J33AiDecisionEvent> aiPool;
+        private final boolean paused;
+        private final long nextSessionId;
+        private final long nextTargetId;
+        private final long nextDecisionId;
+
+        J33EngineSnapshot(Map<Long, J33ClawState> sessionStates, Map<Long, J33Target> targets, Map<Long, J33Payload> payloads, Map<Long, J33CalibrationRecord> calibrations, List<Object> eventLog, List<J33AiDecisionEvent> aiPool, boolean paused, long nextSessionId, long nextTargetId, long nextDecisionId) {
+            this.sessionStates = Collections.unmodifiableMap(new HashMap<>(sessionStates));
+            this.targets = Collections.unmodifiableMap(new HashMap<>(targets));
+            this.payloads = Collections.unmodifiableMap(new HashMap<>(payloads));
+            this.calibrations = Collections.unmodifiableMap(new HashMap<>(calibrations));
+            this.eventLog = Collections.unmodifiableList(new ArrayList<>(eventLog));
+            this.aiPool = Collections.unmodifiableList(new ArrayList<>(aiPool));
+            this.paused = paused;
+            this.nextSessionId = nextSessionId;
+            this.nextTargetId = nextTargetId;
+            this.nextDecisionId = nextDecisionId;
+        }
+
+        public Map<Long, J33ClawState> getSessionStates() { return sessionStates; }
+        public Map<Long, J33Target> getTargets() { return targets; }
+        public Map<Long, J33Payload> getPayloads() { return payloads; }
+        public Map<Long, J33CalibrationRecord> getCalibrations() { return calibrations; }
+        public List<Object> getEventLog() { return eventLog; }
+        public List<J33AiDecisionEvent> getAiPool() { return aiPool; }
+        public boolean isPaused() { return paused; }
+        public long getNextSessionId() { return nextSessionId; }
+        public long getNextTargetId() { return nextTargetId; }
+        public long getNextDecisionId() { return nextDecisionId; }
+    }
+
+    public static final class J33ContractAbi {
+        public static final String OPEN_SESSION = "openSession(address)";
+        public static final String CLOSE_SESSION = "closeSession(uint64,address)";
+        public static final String CALIBRATE = "calibrate(uint64,int32[4],address)";
+        public static final String ACQUIRE_TARGET = "acquireTarget(uint64,uint256,uint256,uint256,address)";
+        public static final String ENGAGE_GRIP = "engageGrip(uint64,uint8,uint8,address)";
+        public static final String ACTIVATE_IRON_CLAW = "activateIronClaw(uint64,uint8,address)";
