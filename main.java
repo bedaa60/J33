@@ -1332,3 +1332,61 @@ public final class J33 {
         public static long chainIdForName(String name) {
             if (name == null) return 0L;
             switch (name.toLowerCase()) {
+                case "mainnet": return J33ChainIds.MAINNET;
+                case "sepolia": return J33ChainIds.SEPOLIA;
+                case "polygon": return J33ChainIds.POLYGON;
+                case "arbitrum": case "arbitrum-one": return J33ChainIds.ARBITRUM_ONE;
+                case "optimism": return J33ChainIds.OPTIMISM;
+                case "bsc": return J33ChainIds.BSC;
+                case "avalanche": return J33ChainIds.AVALANCHE;
+                case "base": return J33ChainIds.BASE;
+                default: return 0L;
+            }
+        }
+    }
+
+    public static String eventSignature(String eventName) {
+        if (eventName == null) return "";
+        switch (eventName) {
+            case "GripEngaged": return "GripEngaged(uint64,uint8,uint8,address,uint256)";
+            case "ClawCalibrated": return "ClawCalibrated(uint64,int32[4],address,uint256)";
+            case "TargetAcquired": return "TargetAcquired(uint64,uint64,uint256,uint256,uint256,address,uint256)";
+            case "AiDecision": return "AiDecision(uint64,uint8,uint64,address,uint256)";
+            case "IronClawActivated": return "IronClawActivated(uint64,uint8,address,uint256)";
+            case "SessionOpened": return "SessionOpened(uint64,address,uint256)";
+            case "SessionClosed": return "SessionClosed(uint64,uint256)";
+            case "PauseToggled": return "PauseToggled(bool,address,uint256)";
+            default: return "";
+        }
+    }
+
+    public static long keccak256Selector(String methodSignature) {
+        if (methodSignature == null) return 0L;
+        try {
+            byte[] b = methodSignature.getBytes(StandardCharsets.UTF_8);
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] h = md.digest(b);
+            return ((long)(h[0] & 0xff) << 24) | ((long)(h[1] & 0xff) << 16) | ((long)(h[2] & 0xff) << 8) | (h[3] & 0xff);
+        } catch (NoSuchAlgorithmException e) {
+            return 0L;
+        }
+    }
+
+    public static final class J33Cli {
+        private final J33 engine;
+
+        public J33Cli(J33 engine) {
+            this.engine = engine != null ? engine : new J33();
+        }
+
+        public int run(String[] args) {
+            if (args == null || args.length == 0) {
+                printUsage();
+                return 0;
+            }
+            String cmd = args[0].trim();
+            if ("--help".equals(cmd) || "-h".equals(cmd)) {
+                printUsage();
+                return 0;
+            }
+            if ("--config".equals(cmd)) {
