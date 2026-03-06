@@ -230,3 +230,61 @@ final class J33PauseToggledEvent {
         this.atMs = atMs;
     }
 }
+
+final class J33ServoMovedEvent {
+    final long sessionId;
+    final int axisIndex;
+    final int fromPosition;
+    final int toPosition;
+    final long atMs;
+
+    J33ServoMovedEvent(long sessionId, int axisIndex, int fromPosition, int toPosition, long atMs) {
+        this.sessionId = sessionId;
+        this.axisIndex = axisIndex;
+        this.fromPosition = fromPosition;
+        this.toPosition = toPosition;
+        this.atMs = atMs;
+    }
+}
+
+final class J33RelayForwardEvent {
+    final String relayHex;
+    final byte[] payloadHash;
+    final long atMs;
+
+    J33RelayForwardEvent(String relayHex, byte[] payloadHash, long atMs) {
+        this.relayHex = relayHex != null ? relayHex : J33Config.J33_ZERO;
+        this.payloadHash = payloadHash != null ? payloadHash.clone() : new byte[0];
+        this.atMs = atMs;
+    }
+}
+
+final class J33TreasuryCreditEvent {
+    final String toHex;
+    final BigInteger amountWei;
+    final long atMs;
+
+    J33TreasuryCreditEvent(String toHex, BigInteger amountWei, long atMs) {
+        this.toHex = toHex != null ? toHex : J33Config.J33_ZERO;
+        this.amountWei = amountWei != null ? amountWei : BigInteger.ZERO;
+        this.atMs = atMs;
+    }
+}
+
+// ─── J33 Enums ──────────────────────────────────────────────────────────────
+
+enum J33ClawMode {
+    IDLE(0),
+    CALIBRATING(1),
+    TRACKING(2),
+    GRIPPING(3),
+    IRON_LOCK(4),
+    RELEASING(5),
+    ERROR(6);
+
+    private final int code;
+    J33ClawMode(int code) { this.code = code; }
+    public int getCode() { return code; }
+    public static J33ClawMode fromCode(int c) {
+        for (J33ClawMode m : values()) if (m.code == c) return m;
+        return IDLE;
