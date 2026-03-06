@@ -868,3 +868,61 @@ public final class J33 {
         public static final String ACQUIRE_TARGET = "acquireTarget(uint64,uint256,uint256,uint256,address)";
         public static final String ENGAGE_GRIP = "engageGrip(uint64,uint8,uint8,address)";
         public static final String ACTIVATE_IRON_CLAW = "activateIronClaw(uint64,uint8,address)";
+        public static final String ATTACH_PAYLOAD = "attachPayload(uint64,bytes,address)";
+        public static final String PUSH_AI_DECISION = "pushAiDecision(uint8,uint64,address)";
+        public static final String SET_PAUSED = "setPaused(bool,address)";
+        public static final String RELEASE_GRIP = "releaseGrip(uint64,address)";
+        public static final String EVENT_GRIP_ENGAGED = "GripEngaged(uint64,uint8,uint8,address,uint256)";
+        public static final String EVENT_CLAW_CALIBRATED = "ClawCalibrated(uint64,int32[4],address,uint256)";
+        public static final String EVENT_TARGET_ACQUIRED = "TargetAcquired(uint64,uint64,uint256,uint256,uint256,address,uint256)";
+        public static final String EVENT_AI_DECISION = "AiDecision(uint64,uint8,uint64,address,uint256)";
+        public static final String EVENT_IRON_CLAW_ACTIVATED = "IronClawActivated(uint64,uint8,address,uint256)";
+        public static final String ERROR_NOT_OPERATOR = "J33_NotOperator()";
+        public static final String ERROR_NOT_IRON_ANCHOR = "J33_NotIronAnchor()";
+        public static final String ERROR_NOT_AI_ORACLE = "J33_NotAiOracle()";
+        public static final String ERROR_CLAW_NOT_CALIBRATED = "J33_ClawNotCalibrated()";
+        public static final String ERROR_PAUSED = "J33_Paused()";
+        public static final String ERROR_REENTRANT = "J33_Reentrant()";
+        public static final String NAMESPACE = "J33.claw.v3";
+    }
+
+    public static final class J33AbiMethodNames {
+        public static final String OPEN_SESSION = "openSession";
+        public static final String CLOSE_SESSION = "closeSession";
+        public static final String CALIBRATE = "calibrate";
+        public static final String ACQUIRE_TARGET = "acquireTarget";
+        public static final String ENGAGE_GRIP = "engageGrip";
+        public static final String ACTIVATE_IRON_CLAW = "activateIronClaw";
+        public static final String ATTACH_PAYLOAD = "attachPayload";
+        public static final String PUSH_AI_DECISION = "pushAiDecision";
+        public static final String SET_PAUSED = "setPaused";
+        public static final String RELEASE_GRIP = "releaseGrip";
+        public static final String GET_CLAW_STATE = "getClawState";
+        public static final String GET_TARGET = "getTarget";
+        public static final String GET_PAYLOAD = "getPayload";
+        public static final String GET_CALIBRATION = "getCalibration";
+        public static final String GET_TARGETS_FOR_SESSION = "getTargetsForSession";
+        public static final String GET_EVENT_LOG = "getEventLog";
+        public static final String GET_AI_DECISION_POOL = "getAiDecisionPool";
+        public static final String APPLY_SERVO_COMMAND = "applyServoCommand";
+        public static final String RUN_SERVO_SEQUENCE = "runServoSequence";
+        public static final String[] ALL_METHODS = {
+            OPEN_SESSION, CLOSE_SESSION, CALIBRATE, ACQUIRE_TARGET, ENGAGE_GRIP,
+            ACTIVATE_IRON_CLAW, ATTACH_PAYLOAD, PUSH_AI_DECISION, SET_PAUSED, RELEASE_GRIP,
+            GET_CLAW_STATE, GET_TARGET, GET_PAYLOAD, GET_CALIBRATION, GET_TARGETS_FOR_SESSION,
+            GET_EVENT_LOG, GET_AI_DECISION_POOL, APPLY_SERVO_COMMAND, RUN_SERVO_SEQUENCE
+        };
+    }
+
+    public static final class J33RoleNames {
+        public static final String OPERATOR = "operator";
+        public static final String IRON_ANCHOR = "iron_anchor";
+        public static final String AI_ORACLE = "ai_oracle";
+        public static final String CALIBRATOR = "calibrator";
+        public static final String TREASURY = "treasury";
+        public static final String RELAY = "relay";
+        public static final String SENTINEL = "sentinel";
+    }
+
+    public static String getRoleAddress(String role) {
+        if (role == null) return J33Config.J33_ZERO;
