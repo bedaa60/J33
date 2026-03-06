@@ -1274,3 +1274,61 @@ public final class J33 {
 
     public List<J33TargetAcquiredEvent> getTargetAcquiredEvents() {
         List<J33TargetAcquiredEvent> out = new ArrayList<>();
+        for (Object o : eventLog) {
+            if (o instanceof J33TargetAcquiredEvent) out.add((J33TargetAcquiredEvent) o);
+        }
+        return out;
+    }
+
+    public List<J33ClawCalibratedEvent> getClawCalibratedEvents() {
+        List<J33ClawCalibratedEvent> out = new ArrayList<>();
+        for (Object o : eventLog) {
+            if (o instanceof J33ClawCalibratedEvent) out.add((J33ClawCalibratedEvent) o);
+        }
+        return out;
+    }
+
+    public List<J33IronClawActivatedEvent> getIronClawActivatedEvents() {
+        List<J33IronClawActivatedEvent> out = new ArrayList<>();
+        for (Object o : eventLog) {
+            if (o instanceof J33IronClawActivatedEvent) out.add((J33IronClawActivatedEvent) o);
+        }
+        return out;
+    }
+
+    public static final class J33GasEstimates {
+        public static final int OPEN_SESSION = 180_000;
+        public static final int CLOSE_SESSION = 95_000;
+        public static final int CALIBRATE = 220_000;
+        public static final int ACQUIRE_TARGET = 150_000;
+        public static final int ENGAGE_GRIP = 120_000;
+        public static final int ACTIVATE_IRON_CLAW = 140_000;
+        public static final int ATTACH_PAYLOAD = 160_000;
+        public static final int PUSH_AI_DECISION = 100_000;
+        public static final int SET_PAUSED = 55_000;
+        public static final int RELEASE_GRIP = 85_000;
+    }
+
+    public static final class J33ChainIds {
+        public static final long MAINNET = 1L;
+        public static final long SEPOLIA = 11155111L;
+        public static final long POLYGON = 137L;
+        public static final long ARBITRUM_ONE = 42161L;
+        public static final long OPTIMISM = 10L;
+        public static final long BSC = 56L;
+        public static final long AVALANCHE = 43114L;
+        public static final long BASE = 8453L;
+    }
+
+    public static final class J33NetworkConfig {
+        public static final String MAINNET_NAME = "mainnet";
+        public static final String SEPOLIA_NAME = "sepolia";
+        public static final String POLYGON_NAME = "polygon";
+        public static final String ARBITRUM_NAME = "arbitrum-one";
+        public static final String OPTIMISM_NAME = "optimism";
+        public static final String BSC_NAME = "bsc";
+        public static final String AVALANCHE_NAME = "avalanche";
+        public static final String BASE_NAME = "base";
+        public static long chainIdForName(String name) {
+            if (name == null) return 0L;
+            switch (name.toLowerCase()) {
