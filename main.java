@@ -404,3 +404,61 @@ final class J33Target {
         this.sessionId = sessionId;
         this.x = x;
         this.y = y;
+        this.z = z;
+        this.createdAtMs = createdAtMs;
+    }
+
+    public long getTargetId() { return targetId; }
+    public long getSessionId() { return sessionId; }
+    public double getX() { return x; }
+    public double getY() { return y; }
+    public double getZ() { return z; }
+    public long getCreatedAtMs() { return createdAtMs; }
+}
+
+final class J33Payload {
+    private final long sessionId;
+    private final byte[] data;
+    private final byte[] hash;
+    private final long attachedAtMs;
+
+    J33Payload(long sessionId, byte[] data, byte[] hash, long attachedAtMs) {
+        this.sessionId = sessionId;
+        this.data = data != null ? data.clone() : new byte[0];
+        this.hash = hash != null ? hash.clone() : new byte[0];
+        this.attachedAtMs = attachedAtMs;
+    }
+
+    public long getSessionId() { return sessionId; }
+    public byte[] getData() { return data.clone(); }
+    public byte[] getHash() { return hash.clone(); }
+    public long getAttachedAtMs() { return attachedAtMs; }
+}
+
+final class J33CalibrationRecord {
+    private final long sessionId;
+    private final int[] offsets;
+    private final String calibratorHex;
+    private final long atMs;
+
+    J33CalibrationRecord(long sessionId, int[] offsets, String calibratorHex, long atMs) {
+        this.sessionId = sessionId;
+        this.offsets = offsets != null ? offsets.clone() : new int[J33Config.J33_SERVO_AXES];
+        this.calibratorHex = calibratorHex != null ? calibratorHex : J33Config.J33_ZERO;
+        this.atMs = atMs;
+    }
+
+    public long getSessionId() { return sessionId; }
+    public int[] getOffsets() { return offsets.clone(); }
+    public String getCalibratorHex() { return calibratorHex; }
+    public long getAtMs() { return atMs; }
+}
+
+// ─── J33 Claw Engine ────────────────────────────────────────────────────────
+
+public final class J33 {
+    private final Map<Long, J33ClawState> sessionStates = new ConcurrentHashMap<>();
+    private final Map<Long, J33Target> targets = new ConcurrentHashMap<>();
+    private final Map<Long, J33Payload> payloadsBySession = new ConcurrentHashMap<>();
+    private final Map<Long, J33CalibrationRecord> calibrations = new ConcurrentHashMap<>();
+    private final List<Object> eventLog = new CopyOnWriteArrayList<>();
