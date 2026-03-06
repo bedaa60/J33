@@ -1100,3 +1100,61 @@ public final class J33 {
 
     public static String[] allRoleAddresses() {
         return new String[]{
+            J33Config.J33_CLAW_OPERATOR,
+            J33Config.J33_IRON_ANCHOR,
+            J33Config.J33_AI_ORACLE,
+            J33Config.J33_CALIBRATOR,
+            J33Config.J33_TREASURY,
+            J33Config.J33_RELAY,
+            J33Config.J33_SENTINEL
+        };
+    }
+
+    public int getFlags() {
+        int f = J33Flags.FLAG_NONE;
+        if (paused) f |= J33Flags.FLAG_PAUSED;
+        boolean anyCalibrated = calibrations.size() > 0;
+        if (anyCalibrated) f |= J33Flags.FLAG_CALIBRATED;
+        for (J33ClawState s : sessionStates.values()) {
+            if (s.getMode() == J33ClawMode.IRON_LOCK) { f |= J33Flags.FLAG_IRON_ACTIVE; break; }
+        }
+        return f;
+    }
+
+    public static boolean isZeroAddress(String hex) {
+        return hex == null || hex.trim().isEmpty() || J33Config.J33_ZERO.equalsIgnoreCase(hex.replace("0x", "").trim()) || "0x0000000000000000000000000000000000000000".equalsIgnoreCase(hex.trim());
+    }
+
+    public static String padHex64(String hex) {
+        if (hex == null) return "0x" + "0".repeat(64);
+        String h = hex.startsWith("0x") ? hex.substring(2) : hex;
+        if (h.length() >= 64) return "0x" + h.substring(0, 64);
+        return "0x" + "0".repeat(64 - h.length()) + h;
+    }
+
+    public boolean canEngageGrip(long sessionId) {
+        J33ClawState s = sessionStates.get(sessionId);
+        return s != null && s.isCalibrated() && !paused;
+    }
+
+    public boolean canActivateIronClaw(long sessionId) {
+        J33ClawState s = sessionStates.get(sessionId);
+        return s != null && s.isCalibrated() && !paused;
+    }
+
+    public int getTotalTargetCount() {
+        return targets.size();
+    }
+
+    public String getConfigJson() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{\"version\":").append(J33Config.J33_VERSION);
+        sb.append(",\"operator\":\"").append(operatorHex).append("\"");
+        sb.append(",\"ironAnchor\":\"").append(ironAnchorHex).append("\"");
+        sb.append(",\"aiOracle\":\"").append(aiOracleHex).append("\"");
+        sb.append(",\"calibrator\":\"").append(calibratorHex).append("\"");
+        sb.append(",\"paused\":").append(paused);
+        sb.append(",\"maxStrength\":").append(J33Config.J33_MAX_CLAW_STRENGTH);
+        sb.append(",\"maxTargetsPerSession\":").append(J33Config.J33_MAX_TARGETS_PER_SESSION);
+        sb.append(",\"maxPayloadBytes\":").append(J33Config.J33_MAX_PAYLOAD_BYTES);
+        sb.append(",\"aiDecisionPoolSize\":").append(J33Config.J33_AI_DECISION_POOL);
