@@ -520,3 +520,61 @@ public final class J33 {
         requireNotPaused();
         requireNotReentrant();
         try {
+            long sid = sessionIdGen.getAndIncrement();
+            J33ClawState state = new J33ClawState(sid, J33ClawMode.IDLE, 0, 0, new int[J33Config.J33_SERVO_AXES], false, System.currentTimeMillis());
+            sessionStates.put(sid, state);
+            eventLog.add(new J33SessionOpenedEvent(sid, caller, System.currentTimeMillis()));
+            return sid;
+        } finally { releaseGuard(); }
+    }
+
+    public void closeSession(long sessionId, String caller) {
+        requireOperator(caller);
+        requireNotReentrant();
+        try {
+            if (!sessionStates.containsKey(sessionId)) throw new J33InvalidSessionException();
+            sessionStates.remove(sessionId);
+            payloadsBySession.remove(sessionId);
+            eventLog.add(new J33SessionClosedEvent(sessionId, System.currentTimeMillis()));
+        } finally { releaseGuard(); }
+    }
+
+    public void calibrate(long sessionId, int[] offsets, String caller) {
+        requireCalibrator(caller);
+        requireNotPaused();
+        requireNotReentrant();
+        try {
+            J33ClawState state = sessionStates.get(sessionId);
+            if (state == null) throw new J33InvalidSessionException();
+            if (offsets == null || offsets.length < J33Config.J33_SERVO_AXES) throw new J33CalibrationFailedException();
+            int[] off = Arrays.copyOf(offsets, J33Config.J33_SERVO_AXES);
+            J33CalibrationRecord rec = new J33CalibrationRecord(sessionId, off, caller, System.currentTimeMillis());
+            calibrations.put(sessionId, rec);
+            J33ClawState next = new J33ClawState(sessionId, J33ClawMode.IDLE, state.getStrengthTier(), state.getGripPercent(), state.getServoPositions(), true, System.currentTimeMillis());
+            sessionStates.put(sessionId, next);
+            eventLog.add(new J33ClawCalibratedEvent(sessionId, off, caller, System.currentTimeMillis()));
+        } finally { releaseGuard(); }
+    }
+
+    public long acquireTarget(long sessionId, double x, double y, double z, String caller) {
+        requireOperator(caller);
+        requireNotPaused();
+        requireNotReentrant();
+        try {
+            if (!sessionStates.containsKey(sessionId)) throw new J33InvalidSessionException();
+            long count = targets.values().stream().filter(t -> t.getSessionId() == sessionId).count();
+            if (count >= J33Config.J33_MAX_TARGETS_PER_SESSION) throw new J33TargetCapReachedException();
+            long tid = targetIdGen.getAndIncrement();
+            J33Target t = new J33Target(tid, sessionId, x, y, z, System.currentTimeMillis());
+            targets.put(tid, t);
+            eventLog.add(new J33TargetAcquiredEvent(tid, sessionId, x, y, z, caller, System.currentTimeMillis()));
+            return tid;
+        } finally { releaseGuard(); }
+    }
+
+    public void engageGrip(long sessionId, int strengthTier, int gripPercent, String caller) {
+        requireOperator(caller);
+        requireNotPaused();
+        requireNotReentrant();
+        try {
+            if (!sessionStates.containsKey(sessionId)) throw new J33InvalidSessionException();
