@@ -1042,3 +1042,61 @@ public final class J33 {
     public static int servoIndex(J33ServoAxis axis) {
         return axis != null ? axis.getIndex() : 0;
     }
+
+    public static J33ClawMode modeFromCode(int code) {
+        return J33ClawMode.fromCode(code);
+    }
+
+    public static J33AIAction actionFromCode(int code) {
+        return J33AIAction.fromCode(code);
+    }
+
+    public static final class J33GasLimits {
+        public static int forOpenSession() { return J33GasEstimates.OPEN_SESSION; }
+        public static int forCloseSession() { return J33GasEstimates.CLOSE_SESSION; }
+        public static int forCalibrate() { return J33GasEstimates.CALIBRATE; }
+        public static int forAcquireTarget() { return J33GasEstimates.ACQUIRE_TARGET; }
+        public static int forEngageGrip() { return J33GasEstimates.ENGAGE_GRIP; }
+        public static int forActivateIronClaw() { return J33GasEstimates.ACTIVATE_IRON_CLAW; }
+        public static int forAttachPayload() { return J33GasEstimates.ATTACH_PAYLOAD; }
+        public static int forPushAiDecision() { return J33GasEstimates.PUSH_AI_DECISION; }
+        public static int forSetPaused() { return J33GasEstimates.SET_PAUSED; }
+        public static int forReleaseGrip() { return J33GasEstimates.RELEASE_GRIP; }
+    }
+
+    public Optional<J33Target> findTarget(long targetId) {
+        return Optional.ofNullable(targets.get(targetId));
+    }
+
+    public Optional<J33CalibrationRecord> findCalibration(long sessionId) {
+        return Optional.ofNullable(calibrations.get(sessionId));
+    }
+
+    public Optional<J33Payload> findPayload(long sessionId) {
+        return Optional.ofNullable(payloadsBySession.get(sessionId));
+    }
+
+    public static final class J33Status {
+        public static final String OK = "ok";
+        public static final String PAUSED = "paused";
+        public static final String ERROR = "error";
+        public static final String NOT_CALIBRATED = "not_calibrated";
+    }
+
+    public String getStatus() {
+        if (paused) return J33Status.PAUSED;
+        return J33Status.OK;
+    }
+
+    public static final class J33Flags {
+        public static final int FLAG_NONE = 0;
+        public static final int FLAG_CALIBRATED = 1;
+        public static final int FLAG_IRON_ACTIVE = 2;
+        public static final int FLAG_PAUSED = 4;
+        public static boolean hasCalibrated(int flags) { return (flags & FLAG_CALIBRATED) != 0; }
+        public static boolean hasIronActive(int flags) { return (flags & FLAG_IRON_ACTIVE) != 0; }
+        public static boolean hasPaused(int flags) { return (flags & FLAG_PAUSED) != 0; }
+    }
+
+    public static String[] allRoleAddresses() {
+        return new String[]{
