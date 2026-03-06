@@ -288,3 +288,61 @@ enum J33ClawMode {
     public static J33ClawMode fromCode(int c) {
         for (J33ClawMode m : values()) if (m.code == c) return m;
         return IDLE;
+    }
+}
+
+enum J33GripLevel {
+    NONE(0),
+    LIGHT(25),
+    MEDIUM(50),
+    FIRM(75),
+    FULL(100);
+
+    private final int percent;
+    J33GripLevel(int percent) { this.percent = percent; }
+    public int getPercent() { return percent; }
+    public static J33GripLevel fromPercent(int p) {
+        if (p <= 0) return NONE;
+        if (p <= 25) return LIGHT;
+        if (p <= 50) return MEDIUM;
+        if (p <= 75) return FIRM;
+        return FULL;
+    }
+}
+
+enum J33ServoAxis {
+    X(0),
+    Y(1),
+    Z(2),
+    ROTATE(3);
+
+    private final int index;
+    J33ServoAxis(int index) { this.index = index; }
+    public int getIndex() { return index; }
+    public static J33ServoAxis fromIndex(int i) {
+        for (J33ServoAxis a : values()) if (a.index == i) return a;
+        return X;
+    }
+}
+
+enum J33AIAction {
+    HOLD(0),
+    MOVE_TO_TARGET(1),
+    GRIP(2),
+    RELEASE(3),
+    CALIBRATE(4),
+    IRON_LOCK(5),
+    ABORT(6);
+
+    private final int code;
+    J33AIAction(int code) { this.code = code; }
+    public int getCode() { return code; }
+    public static J33AIAction fromCode(int c) {
+        for (J33AIAction a : values()) if (a.code == c) return a;
+        return HOLD;
+    }
+}
+
+// ─── J33 State DTOs ─────────────────────────────────────────────────────────
+
+final class J33ClawState {
