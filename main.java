@@ -694,3 +694,61 @@ public final class J33 {
 
     private static byte[] sha256(byte[] input) {
         try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            return md.digest(input != null ? input : new byte[0]);
+        } catch (NoSuchAlgorithmException e) {
+            throw new J33CalibrationFailedException();
+        }
+    }
+
+    public static String toHex(byte[] bytes) {
+        if (bytes == null) return "0x";
+        StringBuilder sb = new StringBuilder("0x");
+        for (byte b : bytes) sb.append(String.format("%02x", b & 0xff));
+        return sb.toString();
+    }
+
+    public static BigInteger weiFromEther(String etherStr) {
+        if (etherStr == null || etherStr.trim().isEmpty()) return BigInteger.ZERO;
+        try {
+            java.math.BigDecimal d = new java.math.BigDecimal(etherStr.trim());
+            return d.multiply(java.math.BigDecimal.valueOf(1_000_000_000_000_000_000L)).toBigInteger();
+        } catch (Exception e) {
+            return BigInteger.ZERO;
+        }
+    }
+
+    public Set<Long> getActiveSessionIds() {
+        return new HashSet<>(sessionStates.keySet());
+    }
+
+    public int getTargetCount() { return targets.size(); }
+    public int getCalibrationCount() { return calibrations.size(); }
+    public int getEventLogSize() { return eventLog.size(); }
+
+    public boolean isSessionActive(long sessionId) {
+        return sessionStates.containsKey(sessionId);
+    }
+
+    public boolean isTargetValid(long targetId) {
+        return targets.containsKey(targetId);
+    }
+
+    public J33ClawMode getSessionMode(long sessionId) {
+        J33ClawState s = sessionStates.get(sessionId);
+        return s != null ? s.getMode() : null;
+    }
+
+    public void batchAcquireTargets(long sessionId, double[][] coordinates, String caller) {
+        requireOperator(caller);
+        requireNotPaused();
+        if (coordinates == null) return;
+        for (double[] c : coordinates) {
+            if (c != null && c.length >= 3)
+                acquireTarget(sessionId, c[0], c[1], c[2], caller);
+        }
+    }
+
+    public J33AiDecisionEvent pollAiDecision() {
+        synchronized (aiDecisionPool) {
+            return aiDecisionPool.isEmpty() ? null : aiDecisionPool.poll();
