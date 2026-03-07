@@ -1622,3 +1622,61 @@ public final class J33 {
             }
             return c;
         }
+        public List<J33GripEngagedEvent> getGripEvents() {
+            List<J33GripEngagedEvent> out = new ArrayList<>();
+            for (Object o : log) {
+                if (o instanceof J33GripEngagedEvent) out.add((J33GripEngagedEvent) o);
+            }
+            return out;
+        }
+        public List<J33TargetAcquiredEvent> getTargetEvents() {
+            List<J33TargetAcquiredEvent> out = new ArrayList<>();
+            for (Object o : log) {
+                if (o instanceof J33TargetAcquiredEvent) out.add((J33TargetAcquiredEvent) o);
+            }
+            return out;
+        }
+    }
+
+    public static final class J33Constants {
+        public static final int MAX_STRENGTH_TIER = J33Config.J33_MAX_CLAW_STRENGTH;
+        public static final int AXIS_COUNT = J33Config.J33_SERVO_AXES;
+        public static final int DEFAULT_GRIP_PERCENT = 50;
+        public static final int DEFAULT_STRENGTH_TIER = 6;
+        public static final String NAMESPACE = "J33.claw.v3";
+        public static final String VERSION_STRING = "3.0.0";
+    }
+
+    public String toShortSummary() {
+        return "J33(sessions=" + sessionStates.size() + ",targets=" + targets.size() + ",events=" + eventLog.size() + ",paused=" + paused + ")";
+    }
+
+    public List<Long> getSessionIdsSortedByCreation() {
+        List<Long> ids = new ArrayList<>(sessionStates.keySet());
+        ids.sort(Long::compareTo);
+        return ids;
+    }
+
+    public J33Target getNearestTarget(long sessionId, double x, double y, double z) {
+        J33Target best = null;
+        double bestDist = Double.POSITIVE_INFINITY;
+        for (J33Target t : targets.values()) {
+            if (t.getSessionId() != sessionId) continue;
+            double dx = t.getX() - x, dy = t.getY() - y, dz = t.getZ() - z;
+            double d = dx * dx + dy * dy + dz * dz;
+            if (d < bestDist) {
+                bestDist = d;
+                best = t;
+            }
+        }
+        return best;
+    }
+
+    public void consumeAiDecisionAndApply(long sessionId, String caller) {
+        requireOperator(caller);
+        J33AiDecisionEvent ev = pollAiDecision();
+        if (ev == null) return;
+        J33AIAction action = J33AIAction.fromCode(ev.actionCode);
+        switch (action) {
+            case HOLD:
+                break;
