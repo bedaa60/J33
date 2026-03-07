@@ -1738,3 +1738,34 @@ public final class J33 {
         return m;
     }
 
+    public int getActiveSessionCount() {
+        return sessionStates.size();
+    }
+
+    public static String truncateAddress(String hex, int head, int tail) {
+        if (hex == null || hex.length() < head + tail + 2) return hex;
+        if (!hex.startsWith("0x")) return hex.substring(0, head) + "..." + hex.substring(hex.length() - tail);
+        return hex.substring(0, Math.min(2 + head, hex.length())) + "..." + hex.substring(Math.max(hex.length() - tail, 0));
+    }
+
+    public static void main(String[] args) {
+        J33 engine = new J33();
+        if (args != null && args.length > 0) {
+            int exit = new J33Cli(engine).run(args);
+            System.exit(exit);
+        }
+        System.out.println("J33 Claw Engine v" + J33Config.J33_VERSION);
+        System.out.println("Operator: " + truncateAddress(engine.getOperatorHex(), 8, 6));
+        long sid = engine.openSession(J33Config.J33_CLAW_OPERATOR);
+        System.out.println("Opened session: " + sid);
+        engine.calibrate(sid, J33Defaults.SERVO_ZERO.clone(), J33Config.J33_CALIBRATOR);
+        long tid = engine.acquireTarget(sid, 1.0, 2.0, 3.0, J33Config.J33_CLAW_OPERATOR);
+        System.out.println("Acquired target: " + tid);
+        engine.engageGrip(sid, J33Defaults.STRENGTH, 75, J33Config.J33_CLAW_OPERATOR);
+        engine.activateIronClaw(sid, 8, J33Config.J33_IRON_ANCHOR);
+        engine.releaseGrip(sid, J33Config.J33_CLAW_OPERATOR);
+        engine.closeSession(sid, J33Config.J33_CLAW_OPERATOR);
+        System.out.println("Event log size: " + engine.getEventLog().size());
+    }
+}
+
