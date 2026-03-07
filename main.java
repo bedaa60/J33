@@ -1506,3 +1506,61 @@ public final class J33 {
     public boolean hasPayload(long sessionId) {
         return payloadsBySession.containsKey(sessionId);
     }
+
+    public int getServoPosition(long sessionId, J33ServoAxis axis) {
+        J33ClawState s = sessionStates.get(sessionId);
+        if (s == null || axis == null) return 0;
+        int[] pos = s.getServoPositions();
+        int idx = axis.getIndex();
+        return (idx >= 0 && idx < pos.length) ? pos[idx] : 0;
+    }
+
+    public void setMode(long sessionId, J33ClawMode mode, String caller) {
+        requireOperator(caller);
+        if (!sessionStates.containsKey(sessionId)) throw new J33InvalidSessionException();
+        J33ClawState state = sessionStates.get(sessionId);
+        J33ClawState next = new J33ClawState(sessionId, mode, state.getStrengthTier(), state.getGripPercent(), state.getServoPositions(), state.isCalibrated(), System.currentTimeMillis());
+        sessionStates.put(sessionId, next);
+    }
+
+    public static final class J33EventNames {
+        public static final String GRIP_ENGAGED = "GripEngaged";
+        public static final String CLAW_CALIBRATED = "ClawCalibrated";
+        public static final String TARGET_ACQUIRED = "TargetAcquired";
+        public static final String AI_DECISION = "AiDecision";
+        public static final String PAYLOAD_ATTACHED = "PayloadAttached";
+        public static final String IRON_CLAW_ACTIVATED = "IronClawActivated";
+        public static final String SESSION_OPENED = "SessionOpened";
+        public static final String SESSION_CLOSED = "SessionClosed";
+        public static final String PAUSE_TOGGLED = "PauseToggled";
+        public static final String SERVO_MOVED = "ServoMoved";
+    }
+
+    public static final class J33ErrorCodes {
+        public static final int NOT_OPERATOR = 1;
+        public static final int NOT_IRON_ANCHOR = 2;
+        public static final int NOT_AI_ORACLE = 3;
+        public static final int NOT_CALIBRATOR = 4;
+        public static final int CLAW_NOT_CALIBRATED = 5;
+        public static final int INVALID_STRENGTH = 6;
+        public static final int INVALID_GRIP = 7;
+        public static final int TARGET_NOT_FOUND = 8;
+        public static final int TARGET_CAP_REACHED = 9;
+        public static final int PAYLOAD_TOO_LARGE = 10;
+        public static final int SERVO_AXIS_OUT_OF_RANGE = 11;
+        public static final int PAUSED = 12;
+        public static final int ZERO_ADDRESS = 13;
+        public static final int REENTRANT = 14;
+        public static final int INVALID_SESSION = 15;
+        public static final int AI_POOL_FULL = 16;
+        public static final int CALIBRATION_FAILED = 17;
+    }
+
+    public int getErrorCode(Throwable t) {
+        if (t == null) return 0;
+        if (t instanceof J33NotOperatorException) return J33ErrorCodes.NOT_OPERATOR;
+        if (t instanceof J33NotIronAnchorException) return J33ErrorCodes.NOT_IRON_ANCHOR;
+        if (t instanceof J33NotAiOracleException) return J33ErrorCodes.NOT_AI_ORACLE;
+        if (t instanceof J33NotCalibratorException) return J33ErrorCodes.NOT_CALIBRATOR;
+        if (t instanceof J33ClawNotCalibratedException) return J33ErrorCodes.CLAW_NOT_CALIBRATED;
+        if (t instanceof J33InvalidStrengthException) return J33ErrorCodes.INVALID_STRENGTH;
