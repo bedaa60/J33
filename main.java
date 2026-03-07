@@ -1564,3 +1564,61 @@ public final class J33 {
         if (t instanceof J33NotCalibratorException) return J33ErrorCodes.NOT_CALIBRATOR;
         if (t instanceof J33ClawNotCalibratedException) return J33ErrorCodes.CLAW_NOT_CALIBRATED;
         if (t instanceof J33InvalidStrengthException) return J33ErrorCodes.INVALID_STRENGTH;
+        if (t instanceof J33InvalidGripException) return J33ErrorCodes.INVALID_GRIP;
+        if (t instanceof J33TargetNotFoundException) return J33ErrorCodes.TARGET_NOT_FOUND;
+        if (t instanceof J33TargetCapReachedException) return J33ErrorCodes.TARGET_CAP_REACHED;
+        if (t instanceof J33PayloadTooLargeException) return J33ErrorCodes.PAYLOAD_TOO_LARGE;
+        if (t instanceof J33ServoAxisOutOfRangeException) return J33ErrorCodes.SERVO_AXIS_OUT_OF_RANGE;
+        if (t instanceof J33PausedException) return J33ErrorCodes.PAUSED;
+        if (t instanceof J33ZeroAddressException) return J33ErrorCodes.ZERO_ADDRESS;
+        if (t instanceof J33ReentrantException) return J33ErrorCodes.REENTRANT;
+        if (t instanceof J33InvalidSessionException) return J33ErrorCodes.INVALID_SESSION;
+        if (t instanceof J33AiDecisionPoolFullException) return J33ErrorCodes.AI_POOL_FULL;
+        if (t instanceof J33CalibrationFailedException) return J33ErrorCodes.CALIBRATION_FAILED;
+        return 0;
+    }
+
+    public static String getAddressTreasury() { return J33Config.J33_TREASURY; }
+    public static String getAddressRelay() { return J33Config.J33_RELAY; }
+    public static String getAddressSentinel() { return J33Config.J33_SENTINEL; }
+    public static int getVersion() { return J33Config.J33_VERSION; }
+    public static long getDomainSalt() { return J33Config.J33_DOMAIN_SALT; }
+
+    public static final class J33Serialization {
+        public static String stateToCsvLine(J33ClawState s) {
+            if (s == null) return "";
+            return s.getSessionId() + "," + s.getMode().name() + "," + s.getStrengthTier() + "," + s.getGripPercent() + "," + s.isCalibrated() + "," + s.getUpdatedAtMs();
+        }
+        public static String targetToCsvLine(J33Target t) {
+            if (t == null) return "";
+            return t.getTargetId() + "," + t.getSessionId() + "," + t.getX() + "," + t.getY() + "," + t.getZ() + "," + t.getCreatedAtMs();
+        }
+        public static String eventTypeOf(Object o) {
+            if (o == null) return "";
+            if (o instanceof J33GripEngagedEvent) return J33EventNames.GRIP_ENGAGED;
+            if (o instanceof J33ClawCalibratedEvent) return J33EventNames.CLAW_CALIBRATED;
+            if (o instanceof J33TargetAcquiredEvent) return J33EventNames.TARGET_ACQUIRED;
+            if (o instanceof J33AiDecisionEvent) return J33EventNames.AI_DECISION;
+            if (o instanceof J33PayloadAttachedEvent) return J33EventNames.PAYLOAD_ATTACHED;
+            if (o instanceof J33IronClawActivatedEvent) return J33EventNames.IRON_CLAW_ACTIVATED;
+            if (o instanceof J33SessionOpenedEvent) return J33EventNames.SESSION_OPENED;
+            if (o instanceof J33SessionClosedEvent) return J33EventNames.SESSION_CLOSED;
+            if (o instanceof J33PauseToggledEvent) return J33EventNames.PAUSE_TOGGLED;
+            if (o instanceof J33ServoMovedEvent) return J33EventNames.SERVO_MOVED;
+            return o.getClass().getSimpleName();
+        }
+    }
+
+    public static final class J33EventLogParser {
+        private final List<Object> log;
+
+        public J33EventLogParser(List<Object> log) {
+            this.log = log != null ? new ArrayList<>(log) : Collections.emptyList();
+        }
+        public int countByType(String type) {
+            int c = 0;
+            for (Object o : log) {
+                if (J33Serialization.eventTypeOf(o).equals(type)) c++;
+            }
+            return c;
+        }
