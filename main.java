@@ -1448,3 +1448,61 @@ public final class J33 {
             engine.calibrate(sid, new int[]{0, 0, 0, 0}, J33Config.J33_CALIBRATOR);
             engine.acquireTarget(sid, 1.0, 2.0, 3.0, J33Config.J33_CLAW_OPERATOR);
             engine.engageGrip(sid, 5, 75, J33Config.J33_CLAW_OPERATOR);
+            engine.activateIronClaw(sid, 8, J33Config.J33_IRON_ANCHOR);
+            engine.releaseGrip(sid, J33Config.J33_CLAW_OPERATOR);
+            engine.closeSession(sid, J33Config.J33_CLAW_OPERATOR);
+            System.out.println("Demo done. Events: " + engine.getEventLogSize());
+        }
+    }
+
+    public static BigInteger parseWei(String str) {
+        if (str == null || str.trim().isEmpty()) return BigInteger.ZERO;
+        str = str.trim();
+        try {
+            if (str.toLowerCase().endsWith("ether") || str.toLowerCase().endsWith("eth")) {
+                String num = str.substring(0, str.length() - 4).trim();
+                java.math.BigDecimal d = new java.math.BigDecimal(num);
+                return d.multiply(java.math.BigDecimal.valueOf(1_000_000_000_000_000_000L)).toBigInteger();
+            }
+            return new BigInteger(str.replace(",", ""));
+        } catch (Exception e) {
+            return BigInteger.ZERO;
+        }
+    }
+
+    public static String formatWei(BigInteger wei) {
+        if (wei == null) return "0";
+        if (wei.signum() == 0) return "0";
+        String s = wei.toString();
+        if (s.length() <= 18) return "0." + s;
+        return s.substring(0, s.length() - 18) + "." + s.substring(s.length() - 18);
+    }
+
+    public void dropTarget(long targetId, String caller) {
+        requireOperator(caller);
+        if (!targets.containsKey(targetId)) throw new J33TargetNotFoundException();
+        targets.remove(targetId);
+    }
+
+    public int countTargetsForSession(long sessionId) {
+        return (int) targets.values().stream().filter(t -> t.getSessionId() == sessionId).count();
+    }
+
+    public Optional<J33ClawState> findSessionByMode(J33ClawMode mode) {
+        return sessionStates.values().stream().filter(s -> s.getMode() == mode).findFirst();
+    }
+
+    public List<Long> getSessionIdsInMode(J33ClawMode mode) {
+        return sessionStates.entrySet().stream()
+            .filter(e -> e.getValue().getMode() == mode)
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
+    }
+
+    public boolean hasCalibration(long sessionId) {
+        return calibrations.containsKey(sessionId);
+    }
+
+    public boolean hasPayload(long sessionId) {
+        return payloadsBySession.containsKey(sessionId);
+    }
