@@ -1680,3 +1680,61 @@ public final class J33 {
         switch (action) {
             case HOLD:
                 break;
+            case RELEASE:
+                releaseGrip(sessionId, caller);
+                break;
+            case GRIP:
+                J33ClawState s = sessionStates.get(sessionId);
+                if (s != null) engageGrip(sessionId, s.getStrengthTier(), 75, caller);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public List<Object> getEventsSince(long sinceMs) {
+        List<Object> out = new ArrayList<>();
+        for (Object o : eventLog) {
+            long at = 0L;
+            if (o instanceof J33GripEngagedEvent) at = ((J33GripEngagedEvent) o).atMs;
+            else if (o instanceof J33ClawCalibratedEvent) at = ((J33ClawCalibratedEvent) o).atMs;
+            else if (o instanceof J33TargetAcquiredEvent) at = ((J33TargetAcquiredEvent) o).atMs;
+            else if (o instanceof J33AiDecisionEvent) at = ((J33AiDecisionEvent) o).atMs;
+            else if (o instanceof J33SessionOpenedEvent) at = ((J33SessionOpenedEvent) o).atMs;
+            else if (o instanceof J33SessionClosedEvent) at = ((J33SessionClosedEvent) o).atMs;
+            else if (o instanceof J33PauseToggledEvent) at = ((J33PauseToggledEvent) o).atMs;
+            else if (o instanceof J33IronClawActivatedEvent) at = ((J33IronClawActivatedEvent) o).atMs;
+            if (at >= sinceMs) out.add(o);
+        }
+        return out;
+    }
+
+    public static final class J33BuildInfo {
+        public static final String BUILD_ID = J33Config.J33_BUILD;
+        public static final int VERSION_MAJOR = 3;
+        public static final int VERSION_MINOR = 0;
+        public static final int VERSION_PATCH = 0;
+        public static final String NAMESPACE = J33ContractAbi.NAMESPACE;
+        public static String fullVersion() {
+            return VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_PATCH;
+        }
+    }
+
+    public void batchReleaseGrip(List<Long> sessionIds, String caller) {
+        if (sessionIds == null) return;
+        for (Long sid : sessionIds) {
+            if (sid != null && sessionStates.containsKey(sid)) {
+                try { releaseGrip(sid, caller); } catch (Exception ignored) {}
+            }
+        }
+    }
+
+    public Map<J33ClawMode, Integer> getSessionCountByMode() {
+        Map<J33ClawMode, Integer> m = new HashMap<>();
+        for (J33ClawMode mode : J33ClawMode.values()) m.put(mode, 0);
+        for (J33ClawState s : sessionStates.values()) {
+            m.merge(s.getMode(), 1, Integer::sum);
+        }
+        return m;
+    }
+
